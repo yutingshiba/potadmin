@@ -57,7 +57,7 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=True):
 def load_train_data(file_name='train_data.csv'):
     label_list = []
     post_list = []
-    dict,embs=load_emb_file('wiki.en.vec')
+    dict=load_emb_file('wiki.en.vec')
     cut_post_length=64
     min_post_length=48
     with open(file_name) as fp:
@@ -76,7 +76,7 @@ def load_train_data(file_name='train_data.csv'):
                     one_post_list=[]
                     for word in post:
                         if word in dict:
-                            one_post_list.append(embs[dict[word]])
+                            one_post_list.append(dict[word])
                         else:
                             tmp_nparray=np.random.random(size=(300,)) - 0.5
                             one_post_list.append(tmp_nparray.tolist())
