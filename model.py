@@ -11,7 +11,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as kr
 import tensorflow.keras.layers as ly
-import tensorflowjs as tfjs
+#import tensorflowjs as tfjs
 
 #global parameters
 epochs=3
