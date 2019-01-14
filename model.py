@@ -11,11 +11,13 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as kr
 import tensorflow.keras.layers as ly
+import tensorflowjs as tfjs
+
 #global parameters
-epochs=10
+epochs=3
 train_data_size=4096#the number of post
-sentence_length=64
 test_data_size=512
+sentence_length=64
 batch_size=512
 embedding_size=64
 embedding_maxindex=1000
@@ -26,9 +28,10 @@ dense_layer=[32,8,4,1]
 learning_rate=0.0001
 
 #random data
-data=np.random.random_integers(embedding_maxindex,size=(train_data_size,sentence_length,embedding_size))
-label=np.random.random_integers(2,size=(train_data_size))
-print(np.array(data).shape)
+train_data=np.random.random_integers(embedding_maxindex,size=(train_data_size,sentence_length,embedding_size))
+train_label=np.random.random_integers(2,size=(train_data_size))
+test_data=np.random.random_integers(embedding_maxindex,size=(test_data_size,sentence_length,embedding_size))
+test_label=np.random.random_integers(2,size=(test_data_size))
 
 #model building
 model=kr.Sequential()
@@ -41,14 +44,23 @@ model.add(ly.Flatten())
 for i in range(0,dense_size):
   model.add(ly.Dense(dense_layer[i],
                      activation='relu',
-                     bias_regularizer=tf.keras.regularizers.l2(0.01),
+                     bias_regularizer=kr.regularizers.l2(0.01),
                     kernel_initializer='orthogonal'))
-model.compile(optimizer=tf.train.AdamOptimizer(learning_rate),
+model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
              metrics=['binary_accuracy']
              )
+callbacks = [
+  tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
+  tf.keras.callbacks.TensorBoard(log_dir='./logs')
+]
 print(model.summary())
-model.fit(data,label,epochs=epochs,batch_size=batch_size)
+model.fit(train_data,train_label,epochs=epochs,batch_size=batch_size,callbacks=callbacks)
+model.save('model.h5')
+#tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
+print('model saved successfully')
+print('test begin')
+model.evaluate(train_data,train_label,batch_size=batch_size)
 
 
 
