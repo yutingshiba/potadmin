@@ -1,6 +1,9 @@
 import tensorflow as tf
 import numpy as np
 
+import re
+import string
+
 
 def load_emb_file(file_name):
     if not file_name:
@@ -18,26 +21,35 @@ def load_emb_file(file_name):
     return vocab, embs
 
 
-def filter_posts(posts_str):
-    posts = posts_str.aplit('|||')
+def parse_posts(posts_str):
+    posts = posts_str.split('|||')
     # filter out invalid posts
     posts_list = []
     for post in posts:
         # replace url
-        _post = re.sub('https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)', post)
+        _post = re.sub('https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)', '<URL>', post)
         if not _post:
             continue
+        # to lower cast
+        words = [w.lower() for w in _post.split(' ')]
+
+        posts_list.append(words)
+
+    return posts_list
 
 
 def load_train_data(file_name='train_data.csv'):
     label_list = []
     post_list = []
     with open(file_name) as fp:
+        fp.readline()   # skip the first line 
+
         for line in fp:
             # load raw input data line by line
-            tokens = line.rstrip('\n').split(',')
-            label = 1 if tokens[0][0] == 'E' else 0
-            posts = filter_posts(tokens[1])
+            _label = line[:5]
+            label = 1 if _label[0] == 'E' else 0
+            #posts = filter_posts(tokens[1])
+            posts = parse_posts(line.rstrip('\n')[5:])
             for post in posts:
                 # treat each post regardless of author
                 label_list.append(label)
@@ -47,8 +59,8 @@ def load_train_data(file_name='train_data.csv'):
 
 
 def main():
-    l_list, p_list = load_train_data('train_small.csv')
-    for i in range(0, 100, 10):
+    l_list, p_list = load_train_data('./_data/train_small.csv')
+    for i in range(0, 10):
         print(l_list[i])
         print(p_list[i])
 
