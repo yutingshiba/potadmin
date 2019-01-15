@@ -69,53 +69,51 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
     return posts_list
 
 
-def load_train_data(file_name='train_data.csv'):
-    label_list = []
-    post_list = []
-    dict=load_emb_file('wiki.en.vec')
-    cut_post_length=64
-    min_post_length=16
-    num=0
-    with open(file_name) as fp:
-        fp.readline()   # skip the first line 
-        for line in fp:
-            # load raw input data line by line
-            _label = line[:5]
-            label = 1 if _label[0] == 'E' else 0
-            #posts = filter_posts(tokens[1])
-            posts = parse_posts(line.rstrip('\n')[5:])
-            #print("!")
-            for post in posts:
-                #print(post)
-                # treat each post regardless of author
-                if(len(post)>min_post_length):
-                    label_list.append(label)
-                    one_post_list=[]
-                    for word in post:
-                        if word in dict:
-                            one_post_list.append(dict[word])
-                        else:
-                            tmp_nparray=np.random.random(size=(300,)) - 0.5
-                            one_post_list.append(tmp_nparray.tolist())
-                    for i in range(0,cut_post_length-len(post)):
-                        tmp_nparray=np.random.random(size=(300,)) - 0.5
-                        one_post_list.append(tmp_nparray.tolist())
-                    post_list.append(one_post_list[:64])
-                    num=num+1
-                if(num%1000==0):
-                    print(num," items")
-                if(num>=4000):
-                    break
-    print(np.array(label_list).shape)
-    print(np.array(post_list).shape)
-    return np.array(label_list), np.array(post_list)
+def generate_arrays_from_file(path,batch_size,dict):
+    while 1:
+        cut_length=16
+        max_length=64
+        word_unk=np.random.random(size=(300,)) - 0.5
+        word_unk=word_unk.tolist()
+        word_emp=np.random.random(size=(300,)) - 0.5
+        word_emp=word_emp.tolist()
+        f = open(path)
+        cnt = 0
+        _data =[]
+        _label =[]
+        for line in f:
+            # create Numpy arrays of input data
+            # and labels, from each line in the file
+            _label.append(int(line[0]))
+            print(int(line[0]))
+            line=line[1:].strip().lstrip('[').rstrip(']')
+            line=line.replace('\'','').split(',')
+            print(line[:3], '  ', line[len(line) - 2:])
+            one_data=[]
+            for word in line:
+                if word in dict:
+                    one_data.append(dict[word])
+                else:
+                    one_data.append(word_emp)
+            for i in range(0, cut_length - len(line)):
+                tmp_nparray = np.random.random(size=(300,)) - 0.5
+                one_data.append(word_unk)
+            _data.append(one_data[:max_length])
+            cnt += 1
+            if cnt==batch_size:
+                cnt = 0
+                yield (np.array(_data), np.array(_label))
+                _data = []
+                _label = []
+    f.close()
 
 
 def main():
-    l_list, p_list = load_train_data('./_data/complete.csv')
+    dict={}
+    data_list, label_list = generate_arrays_from_file('./_data/EI_test.csv',32,dict)
     for i in range(0, 10):
-        print(l_list[i])
-        print(p_list[i])
+        print(data_list[i])
+        print(label_list[i])
 
 if __name__ == '__main__':
     main()
