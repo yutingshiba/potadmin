@@ -2,8 +2,8 @@
 
 fnames = ['EI_all.csv', 'NS_all.csv', 'TF_all.csv', 'JP_all.csv']
 
-train_limit = int(422845 * 0.7)
-valid_limit = int(422845 * 0.85)
+train_limit = int(398742 * 0.7)
+valid_limit = int(398742 * 0.85)
 
 for fname in fnames:
     count = 0
