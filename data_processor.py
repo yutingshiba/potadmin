@@ -3,6 +3,7 @@ import numpy as np
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
 
 import re
 import string
@@ -26,15 +27,14 @@ def load_emb_file(file_name):
     return word_vec
 
 
-def parse_posts(posts_str, trunc_size=100, no_stopwords=True):
+def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
     posts = posts_str.split('|||')
     # filter out invalid posts
     posts_list = []
     for post in posts:
         # replace url
         _post = re.sub(URL_RE, '<URL>', post)
-        if not _post:
-            continue
+
         # to lower cast
         words = [w.lower() for w in _post.split()]
         
@@ -47,10 +47,15 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=True):
             continue
         # Remove stopwords
         stop_words = stopwords.words('english')
-        clean_words = [w for w in stripped if not w in stop_words]
+        clean_words = [w for w in stripped if w and w not in stop_words]
 
         posts_list.append(clean_words[:trunc_size])
-
+        '''
+        # Stemming
+        porter = PorterStemmer()
+        stemmed = [porter.stem(w) for w in clean_words]
+        posts_list.append(stemmed[:trunc_size])
+        '''
     return posts_list
 
 
@@ -89,7 +94,7 @@ def load_train_data(file_name='train_data.csv'):
 
 
 def main():
-    l_list, p_list = load_train_data('./_data/train_small.csv')
+    l_list, p_list = load_train_data('./_data/complete.csv')
     for i in range(0, 10):
         print(l_list[i])
         print(p_list[i])
