@@ -44,8 +44,8 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
         # replace url
         _post = re.sub(URL_RE, '<URL>', post)
 
-        # to lower cast
-        words = [w.lower() for w in _post.split()]
+        # to lower cast  \\  Drop if not alpha
+        words = [w.lower() for w in _post.split() if w.isalpha()]
         
         # Remove punctuation
         punc_table = str.maketrans('', '', string.punctuation)
@@ -53,11 +53,13 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
         if no_stopwords:
             posts_list.append(stripped[:trunc_size])
             continue
+
         # Remove stopwords
         stop_words = stopwords.words('english')
         clean_words = [w for w in stripped if w and w not in stop_words]
 
         posts_list.append(clean_words[:trunc_size])
+        
         '''
         # Stemming
         porter = PorterStemmer()
