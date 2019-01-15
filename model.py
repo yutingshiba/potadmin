@@ -43,13 +43,13 @@ count1=0
 
 #define metric
 def tp(y_true,y_pred):
-    return kr.backend.sum(y_true*kr.backend.round(y_pred)/len(y_pred))
+    return kr.backend.sum(y_true*kr.backend.round(y_pred)/y_pred.shape[0])
 def tn(y_true, y_pred):
-    return kr.backend.sum((1-y_true) * (1-kr.backend.round(y_pred))/len(y_pred))
+    return kr.backend.sum((1-y_true) * (1-kr.backend.round(y_pred))/y_pred.shape[0])
 def fp(y_true, y_pred):
-    return kr.backend.sum(y_true * (1-kr.backend.round(y_pred))/len(y_pred))
+    return kr.backend.sum(y_true * (1-kr.backend.round(y_pred))/y_pred.shape[0])
 def fn(y_true, y_pred):
-    return kr.backend.sum((1-y_true)*kr.backend.round(y_pred)/len(y_pred))
+    return kr.backend.sum((1-y_true)*kr.backend.round(y_pred)/y_pred.shape[0])
 def precision(y_true,y_pred):
     return tp(y_true,y_pred)/(tp(y_true,y_pred)+fp(y_true,y_pred))
 def recall(y_true,y_pred):
