@@ -16,8 +16,8 @@ import data_processor
 
 #global parameters
 epochs=5
-train_data_size=65536#the number of post
-test_data_size=4096
+train_data_size=65536#deprecated
+test_data_size=4096#deprecated
 sentence_length=64
 batch_size=512
 embedding_size=300
@@ -37,10 +37,30 @@ test_data=np.random.random_integers(embedding_maxindex,size=(test_data_size,sent
 test_label=np.random.random_integers(2,size=(test_data_size))
 
 #true data
-
 word_vec=data_processor.load_emb_file('wiki.en.vec')
 count0=0
 count1=0
+
+#define metric
+class Metric(Callback):
+  def on_train_begin(self, logs={}):
+    self.val_f1s = []
+    self.val_recalls = []
+    self.val_precisions = []
+
+  def on_epoch_end(self, epoch, logs={}):
+    val_predict=(np.asarray(self.model.predict(self.model.validation_data[0]))).round()
+    val_targ = self.model.validation_data[1]
+    _val_f1 = f1_score(val_targ, val_predict)
+    _val_recall = recall_score(val_targ, val_predict)
+    _val_precision = precision_score(va_targ, val)
+    self.val_f1s.append(_val_f1)
+    self.val_recalls.append(_val_recall)
+    self.val_precisions.append(_val_precision)
+    print('-val_f1: %.4f --val_precision: %.4f --val_recall: %.4f'%(_val_f1, _val_precision, _val_recall))
+    return
+metric = Metric()
+
 #model building
 model=kr.Sequential()
 model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True),
@@ -56,23 +76,29 @@ for i in range(0,dense_size):
                     kernel_initializer='orthogonal'))
 model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
-             metrics=['binary_accuracy']
+             metrics=['binary_accuracy',metric]
              )
 callbacks = [
   tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
   tf.keras.callbacks.TensorBoard(log_dir='./logs')
 ]
 print(model.summary())
-model.fit_generator(generator=data_processor.generate_arrays_from_file(path=train_path,batch_size=batch_size,word_vec=word_vec),
-          steps_per_epoch=len(train_data)/batch_size,
-          epochs=epochs,
-          callbacks=callbacks)
+model.fit_generator(generator=data_processor.generate_arrays_from_file(path=train_path,
+                                                                       batch_size=batch_size,
+                                                                       word_vec=word_vec),
+            steps_per_epoch=data_processor.get_size(train_path)//batch_size,
+            epochs=epochs,
+            validation_data=data_processor.generate_arrays_from_testfile(path=test_path,
+                                                                         batch_size=batch_size,
+                                                                         word_vec=word_vec),
+            validation_steps=data_processor.get_size(test_path)//batch_size
+            callbacks=callbacks)
 model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
 print('model saved successfully')
-print('test begin')
-model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
-        steps=len(test_data)/batch_size)
-print('test end')
+#print('test begin')
+#model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
+#        steps=len(test_data)//batch_size)
+#print('test end')
 
 

@@ -112,6 +112,51 @@ def generate_arrays_from_file(path,batch_size,word_vec):
                 _label = []
     f.close()
 
+def generate_arrays_from_testfile(path,batch_size,word_vec):
+    while 1:
+        cut_length=16
+        max_length=64
+        word_unk=np.random.random(size=(300,)) - 0.5
+        word_unk=word_unk.tolist()
+        word_emp=word_vec['</s>']
+        f = open(path)
+        cnt = 0
+        _data =[]
+        _label =[]
+        for line in f:
+            # create Numpy arrays of input data
+            # and labels, from each line in the file
+            tokens = line.rstrip('\n').split('\t')
+            _label.append(int(tokens[0]))
+#            line=line[1:].strip().lstrip('[').rstrip(']')
+#            line=line.replace('\'','').split(',')
+            post = json.loads(tokens[1])
+            one_data=[]
+            for word in post:
+                if word in word_vec:
+                    one_data.append(word_vec[word])
+                else:
+                    one_data.append(word_emp)
+            for i in range(0, max_length - len(post)):
+                one_data.append(word_unk)
+            _data.append(one_data[:max_length])
+            cnt += 1
+            if cnt==batch_size:
+                cnt = 0
+                #print("_data: ",np.array(_data).shape)
+                #print("_label: ",np.array(_label).shape)
+                yield (np.array(_data), np.array(_label))
+                #return np.array(_data), np.array(_label)
+                _data = []
+                _label = []
+    f.close()
+
+def get_size(path):
+    f=open(path)
+    cnt=0
+    for line in f:
+        cnt+=1
+    return cnt
 
 def main():
     dict={}
