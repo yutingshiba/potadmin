@@ -43,15 +43,19 @@ count1=0
 
 #define metric
 def tp(y_true,y_pred):
-    return tf.metrics.true_positives_at_thresholds(y_true,y_pred,0.5)
+    return kr.backend.sum(y_true*kr.backend.round(y_pred))
 def tn(y_true, y_pred):
-    return tf.metrics.true_negatives_at_thresholds(y_true,y_pred,0,5)
+    return kr.backend.sum((1.-y_true) * (1.-kr.backend.round(y_pred)))
 def fp(y_true, y_pred):
-    return tf.metrics.false_positives_at_thresholds(y_true,y_pred,0.5)
+    return kr.backend.sum(y_true * (1.-kr.backend.round(y_pred)))
 def fn(y_true, y_pred):
-    return tf.metrics.false_negatives_at_thresholds(y_true,y_pred,0,5)
+    return kr.backend.sum((1.-y_true)*kr.backend.round(y_pred))
+def precision(y_true,y_pred):
+    return tp(y_true,y_pred)/(tp(y_true,y_pred)+fp(y_true,y_pred))
+def recall(y_true,y_pred):
+    return tp(y_true,y_pred)/(tp(y_true,y_pred)+fn(y_true,y_pred))
 def f1(y_true,y_pred):
-    return 2./(1./tf.metrics.recall_at_thresholds(y_true,y_pred,0,5)+1./tf.metrics.recall_at_thresholds(y_true,y_pred,0.5))
+    return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 
 #model building
 model=kr.Sequential()
