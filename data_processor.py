@@ -8,6 +8,7 @@ from nltk.stem.porter import PorterStemmer
 import re
 import string
 import tqdm
+import json
 
 URL_RE = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
@@ -71,14 +72,13 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
     return posts_list
 
 
-def generate_arrays_from_file(path,batch_size,dict):
+def generate_arrays_from_file(path,batch_size,word_vec):
     while 1:
         cut_length=16
         max_length=64
         word_unk=np.random.random(size=(300,)) - 0.5
         word_unk=word_unk.tolist()
-        word_emp=np.random.random(size=(300,)) - 0.5
-        word_emp=word_emp.tolist()
+        word_emp=word_vec['</s>']
         f = open(path)
         cnt = 0
         _data =[]
@@ -86,25 +86,28 @@ def generate_arrays_from_file(path,batch_size,dict):
         for line in f:
             # create Numpy arrays of input data
             # and labels, from each line in the file
-            _label.append(int(line[0]))
-            line=line[1:].strip().lstrip('[').rstrip(']')
-            line=line.replace('\'','').split(',')
+            tokens = line.rstrip('\n').split('\t')
+            _label.append(int(tokens[0]))
+#            line=line[1:].strip().lstrip('[').rstrip(']')
+#            line=line.replace('\'','').split(',')
+            post = json.loads(tokens[1])
             one_data=[]
-            for word in line:
-                if word in dict:
-                    one_data.append(dict[word])
+            for word in post:
+                if word in word_vec:
+                    one_data.append(word_vec[word])
                 else:
                     one_data.append(word_emp)
-            for i in range(0, max_length - len(line)):
+            for i in range(0, max_length - len(post)):
                 tmp_nparray = np.random.random(size=(300,)) - 0.5
                 one_data.append(word_unk)
             _data.append(one_data[:max_length])
             cnt += 1
             if cnt==batch_size:
                 cnt = 0
-                print("_data: ",np.array(_data).shape)
-                print("_label: ",np.array(_label).shape)
+                #print("_data: ",np.array(_data).shape)
+                #print("_label: ",np.array(_label).shape)
                 yield (np.array(_data), np.array(_label))
+                #return np.array(_data), np.array(_label)
                 _data = []
                 _label = []
     f.close()
@@ -113,9 +116,9 @@ def generate_arrays_from_file(path,batch_size,dict):
 def main():
     dict={}
     data_list, label_list = generate_arrays_from_file('./_data/EI_test.csv',32,dict)
-    for i in range(0, 10):
-        print(data_list[i])
-        print(label_list[i])
+    for dd in data_list:
+        print(dd)
+        input()
 
 if __name__ == '__main__':
     main()

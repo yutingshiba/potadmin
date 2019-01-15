@@ -63,7 +63,7 @@ callbacks = [
   tf.keras.callbacks.TensorBoard(log_dir='./logs')
 ]
 print(model.summary())
-model.fit_generator(generator=data_processor.generate_arrays_from_file(path=train_path,batch_size=batch_size,dict=word_vec),
+model.fit_generator(generator=data_processor.generate_arrays_from_file(path=train_path,batch_size=batch_size,word_vec=word_vec),
           steps_per_epoch=len(train_data)/batch_size,
           epochs=epochs,
           callbacks=callbacks)
@@ -71,9 +71,8 @@ model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
 print('model saved successfully')
 print('test begin')
-model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,dict=word_vec),
-        steps=len(test_data)/batch_size,
-        epochs=epochs)
+model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
+        steps=len(test_data)/batch_size)
 print('test end')
 
 
