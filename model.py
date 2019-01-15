@@ -72,7 +72,7 @@ for i in range(0,dense_size):
                     kernel_initializer='orthogonal'))
 model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
-             metrics=['binary_accuracy','precision','recall',f1,tp,tf,np,nf]
+             metrics=['binary_accuracy','precision','recall',f1,tp,tn,fp,fn]
              )
 callbacks = [
   tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
