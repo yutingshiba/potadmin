@@ -16,11 +16,20 @@ def load_emb_file(file_name):
         print('No filename specified')
         return
     word_vec = {}
+    i=0
     with open(file_name) as fp:
-        for line in tqdm(fp):
+        for line in fp:
             tokens = line.rstrip('\n').split(' ')
-            word=wokens[0]
-            tokens=[float(onetoken) for onetoken in tokens[1:]]
+            if(i==0):
+                print(tokens)
+                i=1
+            word=tokens[0]
+            if(i<=10):
+                print(tokens[:5],'   ',tokens[len(tokens)-3:])
+            i=i+1
+            if(i%100000==0):
+                print("read ",i," embeddings")
+            tokens=[float(onetoken) for onetoken in tokens[1:len(tokens)-1]]
             word_vec[word]=tokens
     print('Loaded {} lines of embs with dim {}'.format(len(word_vec), 300))
     return word_vec
@@ -41,7 +50,6 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=True):
         # Remove punctuation
         punc_table = str.maketrans('', '', string.punctuation)
         stripped = [w.translate(punc_table) if w != '<url>' else w for w in words]
-
         if no_stopwords:
             posts_list.append(stripped[:trunc_size])
             continue
@@ -59,17 +67,19 @@ def load_train_data(file_name='train_data.csv'):
     post_list = []
     dict=load_emb_file('wiki.en.vec')
     cut_post_length=64
-    min_post_length=48
+    min_post_length=16
+    num=0
     with open(file_name) as fp:
         fp.readline()   # skip the first line 
-        for line in tqdm(fp):
+        for line in fp:
             # load raw input data line by line
             _label = line[:5]
             label = 1 if _label[0] == 'E' else 0
-
             #posts = filter_posts(tokens[1])
             posts = parse_posts(line.rstrip('\n')[5:])
+            #print("!")
             for post in posts:
+                #print(post)
                 # treat each post regardless of author
                 if(len(post)>min_post_length):
                     label_list.append(label)
@@ -83,8 +93,14 @@ def load_train_data(file_name='train_data.csv'):
                     for i in range(0,cut_post_length-len(post)):
                         tmp_nparray=np.random.random(size=(300,)) - 0.5
                         one_post_list.append(tmp_nparray.tolist())
-                    post_list.append(one_post_list)
-
+                    post_list.append(one_post_list[:64])
+                    num=num+1
+                if(num%1000==0):
+                    print(num," items")
+                if(num>=4000):
+                    break
+    print(np.array(label_list).shape)
+    print(np.array(post_list).shape)
     return np.array(label_list), np.array(post_list)
 
 
