@@ -27,7 +27,9 @@ rnn_length=64
 dense_size=4
 dense_layer=[32,8,4,1]
 learning_rate=0.0001
-
+train_path='/_data/EI_train.csv'
+test_path='/_data/EI_test.csv'
+valid_path='/_data/EI_valid.csv'
 #random data
 train_data=np.random.random_integers(embedding_maxindex,size=(train_data_size,sentence_length,embedding_size))
 train_label=np.random.random_integers(2,size=(train_data_size))
@@ -35,23 +37,10 @@ test_data=np.random.random_integers(embedding_maxindex,size=(test_data_size,sent
 test_label=np.random.random_integers(2,size=(test_data_size))
 
 #true data
-all_label,all_data=data_processor.load_train_data()
-print(all_data.shape)
-print(all_label.shape)
-train_data=all_data[:train_data_size]
-train_label=all_label[:train_data_size]
+
+word_vec=data_processor.load_emb_file('wiki.en.vec')
 count0=0
 count1=0
-for item in train_label:
-    if(item==1):
-        count1+=1
-    if(item==0):
-        count0+=1
-print("0 has ",count0)
-print("1 has ",count1)
-test_data=all_data[train_data_size:train_data_size+test_data_size]
-test_label=all_label[train_data_size:train_data_size+test_data_size]
-
 #model building
 model=kr.Sequential()
 model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True),
@@ -74,7 +63,10 @@ callbacks = [
   tf.keras.callbacks.TensorBoard(log_dir='./logs')
 ]
 print(model.summary())
-model.fit(train_data,train_label,epochs=epochs,batch_size=batch_size,callbacks=callbacks)
+model.fit(generator=data_processor.generate_arrays_from_file(path=train_path,batch_size=batch_size,dict=word_vec),
+          samples_per_epoch=len(train_data)/batch_size
+          epochs=epochs,
+          callbacks=callbacks)
 model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
 print('model saved successfully')
