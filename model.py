@@ -42,24 +42,16 @@ count0=0
 count1=0
 
 #define metric
-class Metric(Callback):
-  def on_train_begin(self, logs={}):
-    self.val_f1s = []
-    self.val_recalls = []
-    self.val_precisions = []
-
-  def on_epoch_end(self, epoch, logs={}):
-    val_predict=(np.asarray(self.model.predict(self.model.validation_data[0]))).round()
-    val_targ = self.model.validation_data[1]
-    _val_f1 = f1_score(val_targ, val_predict)
-    _val_recall = recall_score(val_targ, val_predict)
-    _val_precision = precision_score(va_targ, val)
-    self.val_f1s.append(_val_f1)
-    self.val_recalls.append(_val_recall)
-    self.val_precisions.append(_val_precision)
-    print('-val_f1: %.4f --val_precision: %.4f --val_recall: %.4f'%(_val_f1, _val_precision, _val_recall))
-    return
-metric = Metric()
+def tp(y_true,y_pred):
+    return tf.metrics.true_positives_at_thresholds(y_true,y_pred,0.5)
+def tn(y_true, y_pred):
+    return tf.metrics.true_negatives_at_thresholds(y_true,y_pred,0,5)
+def fp(y_true, y_pred):
+    return tf.metrics.false_positives_at_thresholds(y_true,y_pred,0.5)
+def fn(y_true, y_pred):
+    return tf.metrics.false_negatives_at_thresholds(y_true,y_pred,0,5)
+def f1(y_true,y_pred):
+    return 2./(1./tf.metrics.recall_at_thresholds(y_true,y_pred,0,5)+1./tf.metrics.recall_at_thresholds(y_true,y_pred,0.5))
 
 #model building
 model=kr.Sequential()
@@ -71,12 +63,12 @@ for i in range(0,rnn_size-1):
 model.add(ly.Flatten())
 for i in range(0,dense_size):
   model.add(ly.Dense(dense_layer[i],
-                     activation='relu',
-                     bias_regularizer=kr.regularizers.l2(0.01),
+                    activation='relu',
+                    bias_regularizer=kr.regularizers.l2(0.01),
                     kernel_initializer='orthogonal'))
 model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
-             metrics=['binary_accuracy',metric]
+             metrics=['binary_accuracy','precision','recall',f1,tp,tf,np,nf]
              )
 callbacks = [
   tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
@@ -91,7 +83,7 @@ model.fit_generator(generator=data_processor.generate_arrays_from_file(path=trai
             validation_data=data_processor.generate_arrays_from_testfile(path=test_path,
                                                                          batch_size=batch_size,
                                                                          word_vec=word_vec),
-            validation_steps=data_processor.get_size(test_path)//batch_size
+            validation_steps=data_processor.get_size(test_path)//batch_size,
             callbacks=callbacks)
 model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
