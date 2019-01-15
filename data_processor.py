@@ -30,6 +30,8 @@ def load_emb_file(file_name):
             i=i+1
             if(i%100000==0):
                 print("read ",i," embeddings")
+            if(i>210000):
+                break
             tokens=[float(onetoken) for onetoken in tokens[1:len(tokens)-1]]
             word_vec[word]=tokens
     print('Loaded {} lines of embs with dim {}'.format(len(word_vec), 300))
@@ -83,23 +85,23 @@ def generate_arrays_from_file(path,batch_size,dict):
             # create Numpy arrays of input data
             # and labels, from each line in the file
             _label.append(int(line[0]))
-            print(int(line[0]))
             line=line[1:].strip().lstrip('[').rstrip(']')
             line=line.replace('\'','').split(',')
-            print(line[:3], '  ', line[len(line) - 2:])
             one_data=[]
             for word in line:
                 if word in dict:
                     one_data.append(dict[word])
                 else:
                     one_data.append(word_emp)
-            for i in range(0, cut_length - len(line)):
+            for i in range(0, max_length - len(line)):
                 tmp_nparray = np.random.random(size=(300,)) - 0.5
                 one_data.append(word_unk)
             _data.append(one_data[:max_length])
             cnt += 1
             if cnt==batch_size:
                 cnt = 0
+                print("_data: ",np.array(_data).shape)
+                print("_label: ",np.array(_label).shape)
                 yield (np.array(_data), np.array(_label))
                 _data = []
                 _label = []

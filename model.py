@@ -15,7 +15,7 @@ import tensorflow.keras.layers as ly
 import data_processor
 
 #global parameters
-epochs=3
+epochs=5
 train_data_size=65536#the number of post
 test_data_size=4096
 sentence_length=64
@@ -27,9 +27,9 @@ rnn_length=64
 dense_size=4
 dense_layer=[32,8,4,1]
 learning_rate=0.0001
-train_path='/_data/EI_train.csv'
-test_path='/_data/EI_test.csv'
-valid_path='/_data/EI_valid.csv'
+train_path='./_data/EI_train.csv'
+test_path='./_data/EI_test.csv'
+valid_path='./_data/EI_valid.csv'
 #random data
 train_data=np.random.random_integers(embedding_maxindex,size=(train_data_size,sentence_length,embedding_size))
 train_label=np.random.random_integers(2,size=(train_data_size))
@@ -63,15 +63,17 @@ callbacks = [
   tf.keras.callbacks.TensorBoard(log_dir='./logs')
 ]
 print(model.summary())
-model.fit(generator=data_processor.generate_arrays_from_file(path=train_path,batch_size=batch_size,dict=word_vec),
-          samples_per_epoch=len(train_data)/batch_size
+model.fit_generator(generator=data_processor.generate_arrays_from_file(path=train_path,batch_size=batch_size,dict=word_vec),
+          steps_per_epoch=len(train_data)/batch_size,
           epochs=epochs,
           callbacks=callbacks)
 model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
 print('model saved successfully')
 print('test begin')
-model.evaluate(train_data,train_label,batch_size=batch_size)
-
+model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,dict=word_vec),
+        steps=len(test_data)/batch_size,
+        epochs=epochs)
+print('test end')
 
 
