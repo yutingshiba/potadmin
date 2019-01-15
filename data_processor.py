@@ -1,10 +1,12 @@
-import tensorflow as tf
 import numpy as np
+from sklearn.utils import shuffle
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
+import math
+import random
 import re
 import string
 import tqdm
@@ -72,84 +74,53 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
     return posts_list
 
 
-def generate_arrays_from_file(path,batch_size,word_vec):
-    while 1:
-        cut_length=16
-        max_length=64
-        word_unk=np.random.random(size=(300,)) - 0.5
-        word_unk=word_unk.tolist()
-        word_emp=word_vec['</s>']
-        f = open(path)
-        cnt = 0
-        _data =[]
-        _label =[]
-        for line in f:
-            # create Numpy arrays of input data
-            # and labels, from each line in the file
-            tokens = line.rstrip('\n').split('\t')
-            _label.append(int(tokens[0]))
-#            line=line[1:].strip().lstrip('[').rstrip(']')
-#            line=line.replace('\'','').split(',')
-            post = json.loads(tokens[1])
-            one_data=[]
-            for word in post:
-                if word in word_vec:
-                    one_data.append(word_vec[word])
-                else:
-                    one_data.append(word_emp)
-            for i in range(0, max_length - len(post)):
-                tmp_nparray = np.random.random(size=(300,)) - 0.5
-                one_data.append(word_unk)
-            _data.append(one_data[:max_length])
-            cnt += 1
-            if cnt==batch_size:
-                cnt = 0
-                #print("_data: ",np.array(_data).shape)
-                #print("_label: ",np.array(_label).shape)
-                yield (np.array(_data), np.array(_label))
-                #return np.array(_data), np.array(_label)
-                _data = []
-                _label = []
-    f.close()
+def padded(post, word_vec, unk,  pad_len=64):
+    post_emb = []
+    for word in post[:pad_len]:
+        if word in word_vec:
+            post_emb.append(word_vec[word])
+        else:
+            post_emb.append(unk)
+    # padded to pad_len
+    for i in range(pad_len - len(post_emb)):
+        post_emb.append([0.] * 300)
+    
+    return post_emb
 
-def generate_arrays_from_testfile(path,batch_size,word_vec):
-    while 1:
-        cut_length=16
-        max_length=64
-        word_unk=np.random.random(size=(300,)) - 0.5
-        word_unk=word_unk.tolist()
-        word_emp=word_vec['</s>']
-        f = open(path)
-        cnt = 0
-        _data =[]
-        _label =[]
-        for line in f:
-            # create Numpy arrays of input data
-            # and labels, from each line in the file
+def generate_from_file(path, batch_size, word_vec, is_test=False):
+    label_list = []
+    post_list = []
+    # Load data
+    min_len = 8
+    max_len = 40 
+    with open(path) as fp:
+        for line in fp:
             tokens = line.rstrip('\n').split('\t')
-            _label.append(int(tokens[0]))
-#            line=line[1:].strip().lstrip('[').rstrip(']')
-#            line=line.replace('\'','').split(',')
             post = json.loads(tokens[1])
-            one_data=[]
-            for word in post:
-                if word in word_vec:
-                    one_data.append(word_vec[word])
-                else:
-                    one_data.append(word_emp)
-            for i in range(0, max_length - len(post)):
-                one_data.append(word_unk)
-            _data.append(one_data[:max_length])
-            cnt += 1
-            if cnt==batch_size:
-                cnt = 0
-                #print("_data: ",np.array(_data).shape)
-                #print("_label: ",np.array(_label).shape)
-                yield (np.array(_data), np.array(_label))
-                #return np.array(_data), np.array(_label)
-                _data = []
-                _label = []
-    f.close()
+            if len(post) < min_len:
+                continue
+            label_list.append(int(tokens[0]))
+            post_list.append(post[:max_len])
+
+    # Shuffle data
+    label_list, post_list = shuffle(label_list, post_list)
+
+    # Generate batches
+    nb_batch = math.ceil(len(label_list) / batch_size)
+    word_unk = [random.uniform(-1, 1) for n in range(300)]
+    
+    while 1:
+        for n in range(nb_batch):
+            inputs = []
+            for post in post_list[n*batch_size: (n+1)*batch_size]:
+                inputs.append(padded(post, word_vec, word_unk, pad_len=max_len))
+            outputs = label_list[n*batch_size: (n+1)*batch_size]
+            
+            if is_test:
+                yield (np.array(inputs))
+            else:
+                yield (np.array(inputs), np.array(outputs))
+
 
 def get_size(path):
     f=open(path)

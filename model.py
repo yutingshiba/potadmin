@@ -18,7 +18,7 @@ import data_processor
 epochs=5
 train_data_size=65536#deprecated
 test_data_size=4096#deprecated
-sentence_length=64
+sentence_length=40
 batch_size=512
 embedding_size=300
 embedding_maxindex=1000
@@ -85,12 +85,12 @@ callbacks = [
   tf.keras.callbacks.TensorBoard(log_dir='./logs')
 ]
 print(model.summary())
-model.fit_generator(generator=data_processor.generate_arrays_from_file(path=train_path,
+model.fit_generator(generator=data_processor.generate_from_file(path=train_path,
                                                                        batch_size=batch_size,
                                                                        word_vec=word_vec),
             steps_per_epoch=data_processor.get_size(train_path)//batch_size,
             epochs=epochs,
-            validation_data=data_processor.generate_arrays_from_testfile(path=valid_path,
+            validation_data=data_processor.generate_from_file(path=valid_path,
                                                                          batch_size=batch_size,
                                                                          word_vec=word_vec),
             validation_steps=data_processor.get_size(valid_path)//batch_size,
