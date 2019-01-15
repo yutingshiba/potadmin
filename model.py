@@ -12,14 +12,15 @@ import tensorflow as tf
 import tensorflow.keras as kr
 import tensorflow.keras.layers as ly
 #import tensorflowjs as tfjs
+import data_processor
 
 #global parameters
 epochs=3
-train_data_size=4096#the number of post
-test_data_size=512
+train_data_size=65536#the number of post
+test_data_size=4096
 sentence_length=64
 batch_size=512
-embedding_size=64
+embedding_size=300
 embedding_maxindex=1000
 rnn_size=2
 rnn_length=64
@@ -32,6 +33,24 @@ train_data=np.random.random_integers(embedding_maxindex,size=(train_data_size,se
 train_label=np.random.random_integers(2,size=(train_data_size))
 test_data=np.random.random_integers(embedding_maxindex,size=(test_data_size,sentence_length,embedding_size))
 test_label=np.random.random_integers(2,size=(test_data_size))
+
+#true data
+all_label,all_data=data_processor.load_train_data()
+print(all_data.shape)
+print(all_label.shape)
+train_data=all_data[:train_data_size]
+train_label=all_label[:train_data_size]
+count0=0
+count1=0
+for item in train_label:
+    if(item==1):
+        count1+=1
+    if(item==0):
+        count0+=1
+print("0 has ",count0)
+print("1 has ",count1)
+test_data=all_data[train_data_size:train_data_size+test_data_size]
+test_label=all_label[train_data_size:train_data_size+test_data_size]
 
 #model building
 model=kr.Sequential()
