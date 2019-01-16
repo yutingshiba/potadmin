@@ -55,6 +55,8 @@ def precision(y_true,y_pred):
 def recall(y_true,y_pred):
     return tp(y_true,y_pred)/(tp(y_true,y_pred)+fn(y_true,y_pred))
 def f1(y_true,y_pred):
+    printf(kr.backend.int_shape(y_pred))
+    print(kr.backend.eval(y_pred))
     return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 
 #model building
