@@ -31,7 +31,7 @@ def load_emb_file(file_name):
             i=i+1
             if(i%100000==0):
                 print("read ",i," embeddings")
-            if(i>210000):
+            if(i>10000):
                 break
             tokens=[float(onetoken) for onetoken in tokens[1:len(tokens)-1]]
             word_vec[word]=tokens

@@ -42,20 +42,20 @@ count1=0
 
 #define metric
 def tp(y_true,y_pred):
-    return kr.backend.sum(y_true*kr.backend.round(y_pred))/kr.backend.int_shape(y_pred)[0]
+    return kr.backend.sum(y_true*kr.backend.round(y_pred))
 def tn(y_true, y_pred):
-    return kr.backend.sum((1-y_true) * (1-kr.backend.round(y_pred)))/kr.backend.int_shape(y_pred)[0]
+    return kr.backend.sum((1-y_true) * (1-kr.backend.round(y_pred)))
 def fp(y_true, y_pred):
-    return kr.backend.sum(y_true * (1-kr.backend.round(y_pred)))/kr.backend.int_shape(y_pred)[0]
+    return kr.backend.sum(y_true * (1-kr.backend.round(y_pred)))
 def fn(y_true, y_pred):
-    return kr.backend.sum((1-y_true)*kr.backend.round(y_pred))/kr.backend.int_shape(y_pred)[0]
+    return kr.backend.sum((1-y_true)*kr.backend.round(y_pred))
 def precision(y_true,y_pred):
     return tp(y_true,y_pred)/(tp(y_true,y_pred)+fp(y_true,y_pred))
 def recall(y_true,y_pred):
     return tp(y_true,y_pred)/(tp(y_true,y_pred)+fn(y_true,y_pred))
 def f1(y_true,y_pred):
-    printf(kr.backend.int_shape(y_pred))
-    print(kr.backend.eval(y_pred))
+    #print(kr.backend.int_shape(y_pred))
+    #print(kr.backend.eval(y_pred))
     return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 
 #model building
@@ -79,8 +79,8 @@ model.add(ly.Dense(dense_layer[-1],
 
 model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
-#             metrics=['binary_accuracy',f1,tp,tn,fp,fn]
-             metrics=['binary_accuracy']
+             metrics=['binary_accuracy',f1,tp,tn,fp,fn]
+#             metrics=['binary_accuracy']
              )
 callbacks = [
   tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
