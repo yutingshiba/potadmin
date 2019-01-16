@@ -47,7 +47,10 @@ def precision(y_true,y_pred):
     tensor2 = tp(y_true,y_pred)+fp(y_true,y_pred)
     return ly.Lambda(lambda x: x[0]/x[1])([tensor1, tensor2])
 def recall(y_true,y_pred):
-    return tp(y_true,y_pred)/(tp(y_true,y_pred)+fn(y_true,y_pred))
+    tensor1 = tp(y_true,y_pred)
+    tensor2 = tp(y_true,y_pred)+fn(y_true,y_pred)
+    return ly.Lambda(lambda x: x[0]/x[1])([tensor1, tensor2])
+    # return tp(y_true,y_pred)/(tp(y_true,y_pred)+fn(y_true,y_pred))
 def f1(y_true,y_pred):
     #print(kr.backend.int_shape(y_pred))
     #print(kr.backend.eval(y_pred))
