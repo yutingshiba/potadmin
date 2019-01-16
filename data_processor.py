@@ -92,7 +92,7 @@ def generate_from_file(path, batch_size, word_vec, is_test=False):
     label_list = []
     post_list = []
     # Load data
-    min_len = 8
+    min_len = 4 
     max_len = 40 
     with open(path) as fp:
         for line in fp:
@@ -108,7 +108,8 @@ def generate_from_file(path, batch_size, word_vec, is_test=False):
 
     # Generate batches
     nb_batch = math.ceil(len(label_list) / batch_size)
-    word_unk = [random.uniform(-1, 1) for n in range(300)]
+    #word_unk = [random.uniform(-1, 1) for n in range(300)]
+    word_unk = [-1 for n in range(300)]
     
     while 1:
         for n in range(nb_batch):
@@ -138,12 +139,12 @@ def get_sentence_length(path):
 
 def get_size(path):
     f=open(path)
-    cut_length=4
+    cut_length = 4
     cnt=0
     for line in f:
         tokens=line.rstrip('\n').split('\t')
         post=json.loads(tokens[1])
-        if(len(post)>cut_length):
+        if(len(post) >= cut_length):
             cnt+=1
     return cnt
 
@@ -154,5 +155,18 @@ def main():
         print(dd)
         input()
 
+def load_test_true(path):
+    label_list = []
+    with open(path, 'r') as fp:
+        for line in fp:
+            tokens = line.rstrip('\n').split('\t')
+            ws = json.loads(tokens[1])
+            if len(ws) < 4:
+                continue
+            label = int(tokens[0])
+            label_list.append(label)
+    return np.array(label_list)
+
 if __name__ == '__main__':
-    main()
+    ll = load_test_true('_data/TF_test.csv')
+    print(ll.shape[0])
