@@ -51,6 +51,7 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
         words = [w.lower() for w in _post.split() if w.isalpha()]
         
         # Remove punctuation
+
         punc_table = str.maketrans('', '', string.punctuation)
         stripped = [w.translate(punc_table) if w != '<url>' else w for w in words]
         if no_stopwords:
@@ -74,11 +75,11 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
 
 def generate_arrays_from_file(path,batch_size,word_vec):
     while 1:
-        cut_length=16
-        max_length=64
+        cut_length=4
+        max_length=24
         word_unk=np.random.random(size=(300,)) - 0.5
         word_unk=word_unk.tolist()
-        word_emp=word_vec['</s>']
+        word_emp=np.random.random(size=(300,))-0.5
         f = open(path)
         cnt = 0
         _data =[]
@@ -87,21 +88,23 @@ def generate_arrays_from_file(path,batch_size,word_vec):
             # create Numpy arrays of input data
             # and labels, from each line in the file
             tokens = line.rstrip('\n').split('\t')
-            _label.append(int(tokens[0]))
+            one_label=int(tokens[0])
 #            line=line[1:].strip().lstrip('[').rstrip(']')
 #            line=line.replace('\'','').split(',')
             post = json.loads(tokens[1])
             one_data=[]
-            for word in post:
-                if word in word_vec:
-                    one_data.append(word_vec[word])
-                else:
-                    one_data.append(word_emp)
-            for i in range(0, max_length - len(post)):
-                tmp_nparray = np.random.random(size=(300,)) - 0.5
-                one_data.append(word_unk)
-            _data.append(one_data[:max_length])
-            cnt += 1
+            if(len(post)>cut_length):
+                _label.append(one_label)
+                for word in post:
+                    if word in word_vec:
+                        one_data.append(word_vec[word])
+                    else:
+                        one_data.append(word_emp)
+                for i in range(0, max_length - len(post)):
+                    tmp_nparray = np.random.random(size=(300,)) - 0.5
+                    one_data.append(word_unk)
+                _data.append(one_data[:max_length])
+                cnt += 1
             if cnt==batch_size:
                 cnt = 0
                 #print("_data: ",np.array(_data).shape)
@@ -112,10 +115,24 @@ def generate_arrays_from_file(path,batch_size,word_vec):
                 _label = []
     f.close()
 
+def get_sentence_length(path):
+    f=open(path)
+    dict={}
+    for i in range(0,1000):
+        dict[i]=0
+    for line in f:
+        tokens=line.rstrip('\n').split('\t')
+        post=json.loads(tokens[1])
+        dict[len(post)]+=1
+    for i in range(0,1000):
+        if(dict[i]>0):
+            print(i,": ",dict[i])
+
+
 def generate_arrays_from_testfile(path,batch_size,word_vec):
     while 1:
-        cut_length=16
-        max_length=64
+        cut_length=4
+        max_length=24
         word_unk=np.random.random(size=(300,)) - 0.5
         word_unk=word_unk.tolist()
         word_emp=word_vec['</s>']
@@ -127,20 +144,22 @@ def generate_arrays_from_testfile(path,batch_size,word_vec):
             # create Numpy arrays of input data
             # and labels, from each line in the file
             tokens = line.rstrip('\n').split('\t')
-            _label.append(int(tokens[0]))
+            one_label=int(tokens[0])
 #            line=line[1:].strip().lstrip('[').rstrip(']')
 #            line=line.replace('\'','').split(',')
             post = json.loads(tokens[1])
             one_data=[]
-            for word in post:
-                if word in word_vec:
-                    one_data.append(word_vec[word])
-                else:
-                    one_data.append(word_emp)
-            for i in range(0, max_length - len(post)):
-                one_data.append(word_unk)
-            _data.append(one_data[:max_length])
-            cnt += 1
+            if(len(post)>cut_length):
+                _label.append(one_label)
+                for word in post:
+                    if word in word_vec:
+                        one_data.append(word_vec[word])
+                    else:
+                        one_data.append(word_emp)
+                for i in range(0, max_length - len(post)):
+                    one_data.append(word_unk)
+                _data.append(one_data[:max_length])
+                cnt += 1
             if cnt==batch_size:
                 cnt = 0
                 #print("_data: ",np.array(_data).shape)
@@ -153,9 +172,13 @@ def generate_arrays_from_testfile(path,batch_size,word_vec):
 
 def get_size(path):
     f=open(path)
+    cut_length=4
     cnt=0
     for line in f:
-        cnt+=1
+        tokens=line.rstrip('\n').split('\t')
+        post=json.loads(tokens[1])
+        if(len(post)>cut_length):
+            cnt+=1
     return cnt
 
 def main():

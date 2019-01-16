@@ -15,18 +15,18 @@ import tensorflow.keras.layers as ly
 import data_processor
 
 #global parameters
-epochs=5
+epochs=2
 train_data_size=65536#deprecated
 test_data_size=4096#deprecated
-sentence_length=64
+sentence_length=24
 batch_size=512
-embedding_size=300
-embedding_maxindex=1000
+embedding_size=300#deprecated
+embedding_maxindex=1000#deprecated
 rnn_size=2
-rnn_length=64
-dense_layer=[32,8,4,1]
-learning_rate=0.0005
-train_path='./_data/EI_train.csv'
+rnn_length=128
+dense_layer=[256,32,4,1]
+learning_rate=0.001
+train_path='./_data/EI_test.csv'
 test_path='./_data/EI_test.csv'
 valid_path='./_data/EI_valid.csv'
 #random data
@@ -42,13 +42,13 @@ count1=0
 
 #define metric
 def tp(y_true,y_pred):
-    return kr.backend.mean(y_true*kr.backend.round(y_pred))
+    return kr.backend.sum(y_true*kr.backend.round(y_pred))
 def tn(y_true, y_pred):
-    return kr.backend.mean((1-y_true) * (1-kr.backend.round(y_pred)))
+    return kr.backend.sum((1-y_true) * (1-kr.backend.round(y_pred)))
 def fp(y_true, y_pred):
-    return kr.backend.mean(y_true * (1-kr.backend.round(y_pred)))
+    return kr.backend.sum(y_true * (1-kr.backend.round(y_pred)))
 def fn(y_true, y_pred):
-    return kr.backend.mean((1-y_true)*kr.backend.round(y_pred))
+    return kr.backend.sum((1-y_true)*kr.backend.round(y_pred))
 def precision(y_true,y_pred):
     return tp(y_true,y_pred)/(tp(y_true,y_pred)+fp(y_true,y_pred))
 def recall(y_true,y_pred):
@@ -64,11 +64,12 @@ model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True),
                         merge_mode='concat',
                         input_shape=(sentence_length,embedding_size)))
 for i in range(0,rnn_size-1):
-  model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True)))
+  model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=False)))
 model.add(ly.Flatten())
 for i in range(0,len(dense_layer) - 1):
   model.add(ly.Dense(dense_layer[i],
-                    activation='relu',
+                    activation='sigmoid',
+                    kernel_regularizer=kr.regularizers.l2(0.01),
                     bias_regularizer=kr.regularizers.l2(0.01),
                     kernel_initializer='orthogonal'))
   
@@ -79,7 +80,7 @@ model.add(ly.Dense(dense_layer[-1],
 
 model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
-             metrics=['binary_accuracy',f1,tp,tn,fp,fn]
+             metrics=['binary_accuracy',f1,recall,precision,tp,tn,fp,fn]
 #             metrics=['binary_accuracy']
              )
 callbacks = [
@@ -100,9 +101,14 @@ model.fit_generator(generator=data_processor.generate_arrays_from_file(path=trai
 model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
 print('model saved successfully')
-#print('test begin')
-#model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
-#        steps=len(test_data)//batch_size)
-#print('test end')
+print(model.summary())
+for i in range(0,6):
+    print(model.get_weights()[i])
+print('test begin')
+predict_output=model.predict_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
+        steps=len(test_data)//batch_size)
+np.set_printoptions(threshold=np.nan)
+print(predict_output[:100])
+print('test end')
 
 
