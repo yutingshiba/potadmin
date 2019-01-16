@@ -16,8 +16,8 @@ import data_processor
 
 #global parameters
 epochs=5
-train_data_size=65536#deprecated
-test_data_size=4096#deprecated
+#train_data_size=65536#deprecated
+#test_data_size=4096#deprecated
 sentence_length=40
 batch_size=512
 embedding_size=300
@@ -26,14 +26,13 @@ rnn_size=2
 rnn_length=64
 dense_layer=[32,8,4,1]
 learning_rate=0.0005
-train_path='./_data/EI_train.csv'
-test_path='./_data/EI_test.csv'
-valid_path='./_data/EI_valid.csv'
 #random data
+'''
 train_data=np.random.random_integers(embedding_maxindex,size=(train_data_size,sentence_length,embedding_size))
 train_label=np.random.random_integers(2,size=(train_data_size))
 test_data=np.random.random_integers(embedding_maxindex,size=(test_data_size,sentence_length,embedding_size))
 test_label=np.random.random_integers(2,size=(test_data_size))
+'''
 
 #true data
 word_vec=data_processor.load_emb_file('wiki.en.vec')
@@ -87,19 +86,31 @@ callbacks = [
   tf.keras.callbacks.TensorBoard(log_dir='./logs')
 ]
 print(model.summary())
-model.fit_generator(generator=data_processor.generate_from_file(path=train_path,
-                                                                       batch_size=batch_size,
-                                                                       word_vec=word_vec),
-            steps_per_epoch=data_processor.get_size(train_path)//batch_size,
+
+target = 'EI'
+
+train_path='./_data/{}_train.csv'.format(target)
+test_path='./_data/{}_test.csv'.format(target)
+valid_path='./_data/{}_valid.csv'.format(target)
+
+model.fit_generator(generator=data_processor.generate_from_file(path=train_path, 
+                                                                batch_size=batch_size, 
+                                                                word_vec=word_vec), 
+            steps_per_epoch=data_processor.get_size(train_path) // batch_size,
             epochs=epochs,
+            
             validation_data=data_processor.generate_from_file(path=valid_path,
-                                                                         batch_size=batch_size,
-                                                                         word_vec=word_vec),
-            validation_steps=data_processor.get_size(valid_path)//batch_size,
+                                                                batch_size=batch_size,
+                                                                word_vec=word_vec),
+            validation_steps=data_processor.get_size(valid_path) // batch_size,
             callbacks=callbacks)
-model.save('model.h5')
+
+y_pred = model
+
+model_name = '{}_{}_{}.h5'.format(target, learning_rate, epochs)
+model.save(model_name)
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
-print('model saved successfully')
+print('model {} saved successfully'.format(model_name))
 #print('test begin')
 #model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
 #        steps=len(test_data)//batch_size)

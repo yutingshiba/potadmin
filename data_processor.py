@@ -15,7 +15,7 @@ import json
 URL_RE = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
 
-def load_emb_file(file_name):
+def load_emb_file(file_name, debug=False):
     if not file_name:
         print('No filename specified')
         return
@@ -33,7 +33,7 @@ def load_emb_file(file_name):
             i=i+1
             if(i%100000==0):
                 print("read ",i," embeddings")
-            if(i>10000):
+            if(debug and i>10000):
                 break
             tokens=[float(onetoken) for onetoken in tokens[1:len(tokens)-1]]
             word_vec[word]=tokens
