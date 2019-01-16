@@ -24,9 +24,8 @@ embedding_size=300
 embedding_maxindex=1000
 rnn_size=2
 rnn_length=64
-dense_size=4
 dense_layer=[32,8,4,1]
-learning_rate=0.0001
+learning_rate=0.0005
 train_path='./_data/EI_train.csv'
 test_path='./_data/EI_test.csv'
 valid_path='./_data/EI_valid.csv'
@@ -67,14 +66,21 @@ model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True),
 for i in range(0,rnn_size-1):
   model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True)))
 model.add(ly.Flatten())
-for i in range(0,dense_size):
+for i in range(0,len(dense_layer) - 1):
   model.add(ly.Dense(dense_layer[i],
                     activation='relu',
                     bias_regularizer=kr.regularizers.l2(0.01),
                     kernel_initializer='orthogonal'))
+  
+model.add(ly.Dense(dense_layer[-1],
+                   activation='sigmoid',
+                   bias_regularizer=kr.regularizers.l2(0.01),
+                   kernel_initializer='orthogonal'))
+
 model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
-             metrics=['binary_accuracy',f1,tp,tn,fp,fn]
+#             metrics=['binary_accuracy',f1,tp,tn,fp,fn]
+             metrics=['binary_accuracy']
              )
 callbacks = [
   tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
@@ -86,10 +92,10 @@ model.fit_generator(generator=data_processor.generate_arrays_from_file(path=trai
                                                                        word_vec=word_vec),
             steps_per_epoch=data_processor.get_size(train_path)//batch_size,
             epochs=epochs,
-            validation_data=data_processor.generate_arrays_from_testfile(path=test_path,
+            validation_data=data_processor.generate_arrays_from_testfile(path=valid_path,
                                                                          batch_size=batch_size,
                                                                          word_vec=word_vec),
-            validation_steps=data_processor.get_size(test_path)//batch_size,
+            validation_steps=data_processor.get_size(valid_path)//batch_size,
             callbacks=callbacks)
 model.save('model.h5')
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
