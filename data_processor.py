@@ -53,6 +53,7 @@ def parse_posts(posts_str, trunc_size=100, no_stopwords=False):
         words = [w.lower() for w in _post.split() if w.isalpha()]
         
         # Remove punctuation
+
         punc_table = str.maketrans('', '', string.punctuation)
         stripped = [w.translate(punc_table) if w != '<url>' else w for w in words]
         if no_stopwords:
@@ -122,11 +123,28 @@ def generate_from_file(path, batch_size, word_vec, is_test=False):
                 yield (np.array(inputs), np.array(outputs))
 
 
+def get_sentence_length(path):
+    f=open(path)
+    dict={}
+    for i in range(0,1000):
+        dict[i]=0
+    for line in f:
+        tokens=line.rstrip('\n').split('\t')
+        post=json.loads(tokens[1])
+        dict[len(post)]+=1
+    for i in range(0,1000):
+        if(dict[i]>0):
+            print(i,": ",dict[i])
+
 def get_size(path):
     f=open(path)
+    cut_length=4
     cnt=0
     for line in f:
-        cnt+=1
+        tokens=line.rstrip('\n').split('\t')
+        post=json.loads(tokens[1])
+        if(len(post)>cut_length):
+            cnt+=1
     return cnt
 
 def main():
