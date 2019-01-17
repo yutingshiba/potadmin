@@ -14,7 +14,7 @@ import tensorflow.keras.layers as ly
 import data_processor
 
 #global parameters
-epochs = 4
+epochs = 2
 #train_data_size=65536#deprecated
 #test_data_size=4096#deprecated
 sentence_length = 40
@@ -56,11 +56,11 @@ def f1(y_true,y_pred):
 
 #model building
 model=kr.Sequential()
-model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True),
+model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=True),
                         merge_mode='concat',
                         input_shape=(sentence_length, embedding_size)))
 for i in range(0,rnn_size-1):
-  model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=False)))
+  model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=False)))
 model.add(ly.Flatten())
 for i in range(0, len(dense_layer) - 1):
   model.add(ly.Dense(dense_layer[i],
@@ -85,7 +85,7 @@ callbacks = [
 ]
 print(model.summary())
 
-target = 'EI'
+target = 'JP'
 
 train_path='./_data/{}_train.csv'.format(target)
 test_path='./_data/{}_test.csv'.format(target)
