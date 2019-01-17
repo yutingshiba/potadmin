@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.utils import shuffle
 import tensorflow.keras as kr
+import tensorflow.keras.layers as ly
 from nltk.corpus import stopwords
 
 import math
@@ -10,12 +11,35 @@ import string
 import json
 
 import data_processor
+
+def tp(y_true,y_pred):
+    return kr.backend.sum(y_true * kr.backend.round(y_pred))
+def tn(y_true, y_pred):
+    return kr.backend.sum((1-y_true) * (1-kr.backend.round(y_pred)))
+def fp(y_true, y_pred):
+    return kr.backend.sum((1-y_true)*kr.backend.round(y_pred))
+def fn(y_true, y_pred):
+    return kr.backend.sum(y_true * (1-kr.backend.round(y_pred)))
+def precision(y_true,y_pred):
+    tensor1 = tp(y_true,y_pred)
+    tensor2 = tp(y_true,y_pred)+fp(y_true,y_pred)
+    return ly.Lambda(lambda x: x[0]/x[1])([tensor1, tensor2])
+def recall(y_true,y_pred):
+    tensor1 = tp(y_true,y_pred)
+    tensor2 = tp(y_true,y_pred)+fn(y_true,y_pred)
+    return ly.Lambda(lambda x: x[0]/x[1])([tensor1, tensor2])
+def f1(y_true,y_pred):
+    return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 def load_model():
     model=[]
-    model.append(kr.models.load_model('debug.h5'))
-    model.append(kr.models.load_model('debug.h5'))
-    model.append(kr.models.load_model('debug.h5'))
-    model.append(kr.models.load_model('debug.h5'))
+    model.append(kr.models.load_model('EI_0.0008_2.h5',custom_objects={'f1':f1,'recall':recall,'precision':precision,
+        'tp':tp,'tn':tn,'fp':fp,'fn':fn}))
+    model.append(kr.models.load_model('NS_0.0008_2.h5',custom_objects={'f1':f1,'recall':recall,'precision':precision,
+        'tp':tp,'tn':tn,'fp':fp,'fn':fn}))
+    model.append(kr.models.load_model('TF_0.0008_2.h5',custom_objects={'f1':f1,'recall':recall,'precision':precision,
+        'tp':tp,'tn':tn,'fp':fp,'fn':fn}))
+    model.append(kr.models.load_model('JP_0.0008_2.h5',custom_objects={'f1':f1,'recall':recall,'precision':precision,
+        'tp':tp,'tn':tn,'fp':fp,'fn':fn}))
     word_vec=data_processor.load_emb_file('wiki.en.vec')
     return model,word_vec
 
