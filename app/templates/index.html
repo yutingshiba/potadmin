@@ -282,25 +282,25 @@
 
         var pieConfig1 = Object.create(pieConfig);
         pieConfig1.data.datasets[0].data=[mbti_score[1], 1 - mbti_score[1]];
-        pieConfig1.data.labels=["extraversion", "introversion"];
+        pieConfig1.data.labels=["Extraversion", "Introversion"];
         var pieCtx = document.getElementById("chartjs-pie-chart").getContext("2d");
         window.myPie = new Chart(pieCtx, pieConfig1);
 
         // var pieConfig2 = Object.create(pieConfig);
-        pieConfig2.data.labels=["sensing", "intuition"];
+        pieConfig2.data.labels=["Intuition", "Sensing"];
         pieConfig2.data.datasets[0].data=[mbti_score[2], 1 - mbti_score[2]];
         var pieCtx2 = document.getElementById("chartjs-pie-chart2").getContext("2d");
         window.myPie = new Chart(pieCtx2, pieConfig2);
 
 
         // var pieConfig3 = Object.create(pieConfig);
-        pieConfig3.data.labels=["thinking", "feeling"];
+        pieConfig3.data.labels=["Thinking", "Feeling"];
         pieConfig3.data.datasets[0].data=[mbti_score[3], 1 - mbti_score[3]];
         var pieCtx3 = document.getElementById("chartjs-pie-chart3").getContext("2d");
         window.myPie = new Chart(pieCtx3, pieConfig3);
 
         // var pieConfig4 = Object.create(pieConfig);
-        pieConfig4.data.labels=["judging", "perception"];
+        pieConfig4.data.labels=["Judging", "Perception"];
         pieConfig4.data.datasets[0].data=[mbti_score[4], 1 - mbti_score[4]];
         var pieCtx4 = document.getElementById("chartjs-pie-chart4").getContext("2d");
         window.myPie = new Chart(pieCtx4, pieConfig4);

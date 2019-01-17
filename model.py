@@ -55,6 +55,17 @@ def f1(y_true,y_pred):
     return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 
 #model building
+<<<<<<< HEAD
+model=kr.Sequential()
+model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=True),
+                        merge_mode='concat',
+                        input_shape=(sentence_length, embedding_size)))
+for i in range(0,rnn_size-1):
+  model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=False)))
+model.add(ly.Flatten())
+for i in range(0, len(dense_layer) - 1):
+  model.add(ly.Dense(dense_layer[i],
+=======
 _train = True
 if _train:
     model=kr.Sequential()
@@ -66,6 +77,7 @@ if _train:
     model.add(ly.Flatten())
     for i in range(0, len(dense_layer) - 1):
         model.add(ly.Dense(dense_layer[i],
+>>>>>>> a738356c16b56c5396f43a64815571f383cad01a
                     activation='relu',
                     #kernel_regularizer=kr.regularizers.l2(0.01),
                     #bias_regularizer=kr.regularizers.l2(0.01),

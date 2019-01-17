@@ -9,6 +9,9 @@ import re
 import string
 from nltk.corpus import stopwords
 
+import tensorflow as tf
+import middle
+
 class TweetAPI(object):
     def __init__(self):
         self.consumer_key = "HV2zZ7gZzrfWIrxEHVQW6uNA1"
@@ -17,7 +20,7 @@ class TweetAPI(object):
         self.access_token_secret = "eHI6E4nmQGKWd5YnE1QwDXNNgrQgPDZ2TNF8BUdtoBFEJ"
         self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_token, self.access_token_secret)
-        self.api = tweepy.API(self.auth, proxy='127.0.0.1:1087')
+        self.api = tweepy.API(self.auth)
 
     '''
     These chars/strings will be filtered out:
@@ -52,6 +55,7 @@ class TweetAPI(object):
         # Remove stopwords
         stop_words = stopwords.words('english')
         post = [w for w in post if w and w not in stop_words]
+        post = ' '.join(post)
 
         return post  # Return post as a list
 
@@ -95,6 +99,11 @@ def convert_mbti_to_html():
     pass
 
 tweetapi = TweetAPI()
+print('loading model...')
+global model
+model, word_vec = middle.load_model()
+global graph
+graph = tf.get_default_graph()
 
 app = Flask(__name__)
 # app.debug = True
@@ -113,7 +122,7 @@ def index():
         posts, raw_posts = tweetapi.get_user_timeline(twitter_account, count=num_posts)
         if posts:
             posts_to_display = convert_rawpost_to_html(twitter_account, raw_posts)
-            print(posts, num_posts)
+            print('===check post===' ,posts, num_posts)
             jsonrtn[0] = True
             # response = make_response(render_template('index.html', posts_to_display=posts_to_display), 200)
             # # response = make_response('hello', 200)
@@ -122,6 +131,12 @@ def index():
             # return response
             # return jsonify({'status': 'ok', 'data':[{'content': render_template('index.html', posts_to_display=posts_to_display)}]})
             jsonrtn[1:5] = [.1, .2, .3, .4]
+            print(len(word_vec))
+            print('postshape {}'.format(len(posts)))
+            with graph.as_default():
+              predict_list = middle.predict(posts, model, word_vec)
+            print(predict_list)
+            jsonrtn[1:5] = predict_list
             return render_template('index.html', posts_to_display=posts_to_display, jsonrtn=json.dumps(jsonrtn))
         else:
             jsonrtn[0] = False
@@ -131,4 +146,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1') # , debug=True
+    app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False) # , debug=True
