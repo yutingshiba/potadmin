@@ -9,6 +9,7 @@ import re
 import string
 from nltk.corpus import stopwords
 
+import tensorflow as tf
 import middle
 
 class TweetAPI(object):
@@ -98,9 +99,11 @@ def convert_mbti_to_html():
     pass
 
 tweetapi = TweetAPI()
-
+print('loading model...')
+global model
 model, word_vec = middle.load_model()
-
+global graph
+graph = tf.get_default_graph()
 
 app = Flask(__name__)
 # app.debug = True
@@ -128,8 +131,12 @@ def index():
             # return response
             # return jsonify({'status': 'ok', 'data':[{'content': render_template('index.html', posts_to_display=posts_to_display)}]})
             jsonrtn[1:5] = [.1, .2, .3, .4]
-            predict_list = middle.predict(posts, model, word_vec)
+            print(len(word_vec))
+            print('postshape {}'.format(len(posts)))
+            with graph.as_default():
+              predict_list = middle.predict(posts, model, word_vec)
             print(predict_list)
+            jsonrtn[1:5] = predict_list
             return render_template('index.html', posts_to_display=posts_to_display, jsonrtn=json.dumps(jsonrtn))
         else:
             jsonrtn[0] = False
@@ -139,4 +146,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, debug=True) # , debug=True
+    app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False) # , debug=True
