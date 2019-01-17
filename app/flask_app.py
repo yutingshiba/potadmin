@@ -136,7 +136,12 @@ def index():
             with graph.as_default():
               predict_list = middle.predict(posts, model, word_vec)
             print(predict_list)
+#            predict_list = predict_list.tolist()
+            predict_list = [float(i) for i in predict_list]
+            print(type(predict_list[0]))
             jsonrtn[1:5] = predict_list
+
+           # jsonrtn = str(jsonrtn)
             return render_template('index.html', posts_to_display=posts_to_display, jsonrtn=json.dumps(jsonrtn))
         else:
             jsonrtn[0] = False

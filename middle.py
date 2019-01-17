@@ -78,6 +78,6 @@ def predict(posts,model,word_vec):
     return result
 #sample
 model,word_vec=load_model()
-posts=['we are good and better.','what is this and what is that?']
+posts=['Suning Holdings Group Ltd, announced it will add 80,000 jobs in 2019, mainly in retail, modern supply chain and digital areas to support the real #economy. https://t.co/64EzYDgTYO https://t.co/ALNuXjYSew','Fu Ying, China\'s former vice-foreign minister, also the first woman appointed to the role of spokeswoman for China\'s top legislature, has published a book recalling her years on her career. https://t.co/Ujclrc1i17 https://t.co/JhP2CpZP69','Chinese universities dominate this year\'s rankings of emerging economies universities, according to data. #education https://t.co/dbrGMxIJnX https://t.co/HTngFCxWel','China\'s licensing freeze lasted nine months till December, which makes China\'s mobile #game market suffering from its slowest revenue growth in a decade. https://t.co/DtIdLdq46n #esports https://t.co/mNbqhCRLlW','Shanghai scientists have discovered that the volume of putamen, a subcortical brain area, in adolescents as an indicator of a higher possibility in the development of schizophrenia after adulthood. https://t.co/65HhBUkJRQ #science https://t.co/lEAjFuePWT']
 predict_list=predict(posts,model,word_vec)
 print(predict_list)
