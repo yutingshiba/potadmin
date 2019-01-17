@@ -14,7 +14,7 @@ import tensorflow.keras.layers as ly
 import data_processor
 
 #global parameters
-epochs = 8
+epochs = 6 
 #train_data_size=65536#deprecated
 #test_data_size=4096#deprecated
 sentence_length = 40
@@ -23,7 +23,7 @@ embedding_size = 300#deprecated
 
 rnn_length = 16
 dense_layer = [32, 1]
-learning_rate = 0.00005
+learning_rate = 0.0005
 
 #true data
 #word_vec=data_processor.load_emb_file('wiki.en.vec', True)
@@ -55,17 +55,6 @@ def f1(y_true,y_pred):
     return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 
 #model building
-<<<<<<< HEAD
-model=kr.Sequential()
-model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=True),
-                        merge_mode='concat',
-                        input_shape=(sentence_length, embedding_size)))
-for i in range(0,rnn_size-1):
-  model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=False)))
-model.add(ly.Flatten())
-for i in range(0, len(dense_layer) - 1):
-  model.add(ly.Dense(dense_layer[i],
-=======
 _train = True
 if _train:
     model=kr.Sequential()
@@ -77,7 +66,6 @@ if _train:
     model.add(ly.Flatten())
     for i in range(0, len(dense_layer) - 1):
         model.add(ly.Dense(dense_layer[i],
->>>>>>> a738356c16b56c5396f43a64815571f383cad01a
                     activation='relu',
                     #kernel_regularizer=kr.regularizers.l2(0.01),
                     #bias_regularizer=kr.regularizers.l2(0.01),
@@ -98,7 +86,7 @@ if _train:
     ]
     print(model.summary())
 
-target = 'JP'
+target = 'EI'
 
 train_path='./_data/{}_train.csv'.format(target)
 test_path='./_data/{}_test.csv'.format(target)
@@ -118,7 +106,7 @@ if _train:
                                                                 word_vec=word_vec),
             validation_steps= ( data_processor.get_size(valid_path) // batch_size +1),
             callbacks=callbacks,
-            class_weight = {1: 1.5, 0: 1.})
+            class_weight = {1: 3.4, 0: 1.})
 
 weight_name = './saved_weight/{}_{}_{}.h5'.format(target, learning_rate, epochs)
 model_name = './saved_model/{}_{}_{}.h5'.format(target, learning_rate, epochs)
