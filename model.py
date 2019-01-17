@@ -14,16 +14,16 @@ import tensorflow.keras.layers as ly
 import data_processor
 
 #global parameters
-epochs = 2
+epochs = 8
 #train_data_size=65536#deprecated
 #test_data_size=4096#deprecated
 sentence_length = 40
 batch_size = 512
 embedding_size = 300#deprecated
-rnn_size = 2
-rnn_length = 64
-dense_layer = [32, 8, 1]
-learning_rate = 0.0008
+
+rnn_length = 16
+dense_layer = [32, 1]
+learning_rate = 0.00005
 
 #true data
 #word_vec=data_processor.load_emb_file('wiki.en.vec', True)
@@ -55,6 +55,7 @@ def f1(y_true,y_pred):
     return 2./(1./recall(y_true,y_pred)+1./precision(y_true,y_pred))
 
 #model building
+<<<<<<< HEAD
 model=kr.Sequential()
 model.add(ly.Bidirectional(ly.CuDNNLSTM(rnn_length,return_sequences=True),
                         merge_mode='concat',
@@ -64,26 +65,38 @@ for i in range(0,rnn_size-1):
 model.add(ly.Flatten())
 for i in range(0, len(dense_layer) - 1):
   model.add(ly.Dense(dense_layer[i],
+=======
+_train = True
+if _train:
+    model=kr.Sequential()
+    model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=True),
+                        merge_mode='concat',
+                        input_shape=(sentence_length, embedding_size)))
+#model.add(ly.Bidirectional(ly.LSTM(rnn_length,return_sequences=False)))
+#model.add(ly.LSTM(rnn_length,return_sequences=False))
+    model.add(ly.Flatten())
+    for i in range(0, len(dense_layer) - 1):
+        model.add(ly.Dense(dense_layer[i],
+>>>>>>> a738356c16b56c5396f43a64815571f383cad01a
                     activation='relu',
-                    kernel_regularizer=kr.regularizers.l2(0.01),
-                    bias_regularizer=kr.regularizers.l2(0.01),
+                    #kernel_regularizer=kr.regularizers.l2(0.01),
+                    #bias_regularizer=kr.regularizers.l2(0.01),
                     kernel_initializer='glorot_uniform'))
   
-model.add(ly.Dense(dense_layer[-1],
+    model.add(ly.Dense(dense_layer[-1],
                    activation='sigmoid',
-                   bias_regularizer=kr.regularizers.l2(0.01),
+                   #bias_regularizer=kr.regularizers.l2(0.01),
                    kernel_initializer='glorot_uniform'))
-
-model.compile(optimizer=kr.optimizers.Adam(learning_rate),
+    model.compile(optimizer=kr.optimizers.Adam(learning_rate),
              loss='binary_crossentropy',
              metrics=['binary_accuracy',f1,recall,precision,tp,tn,fp,fn]
 #             metrics=['binary_accuracy']
              )
-callbacks = [
-  tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
-  tf.keras.callbacks.TensorBoard(log_dir='./logs')
-]
-print(model.summary())
+    callbacks = [
+    tf.keras.callbacks.EarlyStopping(patience=2, monitor='loss'),
+    tf.keras.callbacks.TensorBoard(log_dir='./logs')
+    ]
+    print(model.summary())
 
 target = 'JP'
 
@@ -93,8 +106,8 @@ valid_path='./_data/{}_valid.csv'.format(target)
 
 #train_path='./_data/train_small.csv'.format(target)
 #valid_path='./_data/train_small.csv'.format(target)
-
-model.fit_generator(generator=data_processor.generate_from_file(path=train_path, 
+if _train:
+    model.fit_generator(generator=data_processor.generate_from_file(path=train_path, 
                                                                 batch_size=batch_size, 
                                                                 word_vec=word_vec), 
             steps_per_epoch=(data_processor.get_size(train_path) // batch_size + 1),
@@ -104,25 +117,50 @@ model.fit_generator(generator=data_processor.generate_from_file(path=train_path,
                                                                 batch_size=batch_size,
                                                                 word_vec=word_vec),
             validation_steps= ( data_processor.get_size(valid_path) // batch_size +1),
-            callbacks=callbacks)
+            callbacks=callbacks,
+            class_weight = {1: 1.5, 0: 1.})
 
-y_pred = model
+weight_name = './saved_weight/{}_{}_{}.h5'.format(target, learning_rate, epochs)
+model_name = './saved_model/{}_{}_{}.h5'.format(target, learning_rate, epochs)
+#model.save(model_name)
+if _train:
+    '''
+    with open(model_name, 'w') as fp:
+        fp.write(model.to_json())
+    model.save_weights(weight_name)
+    '''
+    model.save(model_name)
+    print('model {} saved successfully'.format(model_name))
+else:
+    '''
+    with open(model_name, 'r') as fp:
+        loaded_model_json = fp.read()
+    loaded_model = model_from_json(loaded_model_json)
+    loaded_model.load_weights(weight_name)
+    '''
+    loaded_model = kr.models.load_model(model_name) 
+    print('model {} loaded successfully'.format(model_name))
+    print(loaded_model.summary())
 
-model_name = '{}_{}_{}.h5'.format(target, learning_rate, epochs)
-model.save(model_name)
+if not _train:
+    loaded_model.compile(optimizer=kr.optimizers.Adam(learning_rate),
+             loss='binary_crossentropy',
+             metrics=['binary_accuracy',f1,recall,precision,tp,tn,fp,fn]
+#             metrics=['binary_accuracy']
+             )
 #tfjs.converters.save_keras_model(model, 'model.json')#save tf.js model,if need
-print('model {} saved successfully'.format(model_name))
-#print('test begin')
-#model.evaluate_generator(generator=data_processor.generate_arrays_from_file(path=test_path,batch_size=batch_size,word_vec=word_vec),
-#        steps=len(test_data)//batch_size)
-#print('test end')
 '''
 for i in range(0,6):
     print(model.get_weights()[i])
 print('test begin')
 '''
-
-predict_output = model.predict_generator(generator=data_processor.generate_from_file(path=test_path,
+if _train:
+    predict_output = model.predict_generator(generator=data_processor.generate_from_file(path=test_path,
+                                                                                    batch_size=batch_size,
+                                                                                    word_vec=word_vec),
+                                                                                    steps= (data_processor.get_size(test_path) // batch_size + 1))
+else:
+    predict_output = loaded_model.predict_generator(generator=data_processor.generate_from_file(path=test_path,
                                                                                     batch_size=batch_size,
                                                                                     word_vec=word_vec),
                                                                                     steps= (data_processor.get_size(test_path) // batch_size + 1))
