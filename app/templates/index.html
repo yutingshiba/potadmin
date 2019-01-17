@@ -171,31 +171,139 @@
         }
     };
 
+
+    var pieConfig2 = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: [
+                    400, 300
+                ],
+                backgroundColor: [
+                    // window.chartColors.red,
+                    // window.chartColors.orange,
+                    window.chartColors.yellow,
+                    // window.chartColors.green,
+                    window.chartColors.blue,
+                ],
+                label: 'Dataset 1'
+            }],
+            labels: [
+                // "Red",
+                // "Orange",
+                "Yellow",
+                // "Green",
+                "Blue"
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: false,
+                text: 'Pie Chart'
+            }
+        }
+    };
+
+    var pieConfig3 = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: [
+                    400, 300
+                ],
+                backgroundColor: [
+                    // window.chartColors.red,
+                    // window.chartColors.orange,
+                    window.chartColors.yellow,
+                    // window.chartColors.green,
+                    window.chartColors.blue,
+                ],
+                label: 'Dataset 1'
+            }],
+            labels: [
+                // "Red",
+                // "Orange",
+                "Yellow",
+                // "Green",
+                "Blue"
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: false,
+                text: 'Pie Chart'
+            }
+        }
+    };
+
+    var pieConfig4 = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: [
+                    400, 300
+                ],
+                backgroundColor: [
+                    // window.chartColors.red,
+                    // window.chartColors.orange,
+                    window.chartColors.yellow,
+                    // window.chartColors.green,
+                    window.chartColors.blue,
+                ],
+                label: 'Dataset 1'
+            }],
+            labels: [
+                // "Red",
+                // "Orange",
+                "Yellow",
+                // "Green",
+                "Blue"
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: false,
+                text: 'Pie Chart'
+            }
+        }
+    };
+
+
     var a = {{jsonrtn | tojson}};
     var mbti_score = eval('(' + a + ')');
     if (mbti_score[0] == true) {
         document.getElementById("mbdi-charts").style.display="block";
-        pieConfig.data.datasets[0].data=[mbti_score[1], 1 - mbti_score[1]];
-        pieConfig.data.labels=["extraversion", "introversion"];
+
+        var pieConfig1 = Object.create(pieConfig);
+        pieConfig1.data.datasets[0].data=[mbti_score[1], 1 - mbti_score[1]];
+        pieConfig1.data.labels=["extraversion", "introversion"];
         var pieCtx = document.getElementById("chartjs-pie-chart").getContext("2d");
-        window.myPie = new Chart(pieCtx, pieConfig);
+        window.myPie = new Chart(pieCtx, pieConfig1);
 
-        pieConfig.data.labels=["sensing", "intuition"];
-        pieConfig.data.datasets[0].data=[mbti_score[2], 1 - mbti_score[2]];
-        pieConfig.options.title.text='S/N'
+        // var pieConfig2 = Object.create(pieConfig);
+        pieConfig2.data.labels=["sensing", "intuition"];
+        pieConfig2.data.datasets[0].data=[mbti_score[2], 1 - mbti_score[2]];
         var pieCtx2 = document.getElementById("chartjs-pie-chart2").getContext("2d");
-        window.myPie = new Chart(pieCtx2, pieConfig);
+        window.myPie = new Chart(pieCtx2, pieConfig2);
 
 
-        pieConfig.data.labels=["thinking", "feeling"];
-        pieConfig.data.datasets[0].data=[mbti_score[3], 1 - mbti_score[3]];
+        // var pieConfig3 = Object.create(pieConfig);
+        pieConfig3.data.labels=["thinking", "feeling"];
+        pieConfig3.data.datasets[0].data=[mbti_score[3], 1 - mbti_score[3]];
         var pieCtx3 = document.getElementById("chartjs-pie-chart3").getContext("2d");
-        window.myPie = new Chart(pieCtx3, pieConfig);
+        window.myPie = new Chart(pieCtx3, pieConfig3);
 
-        pieConfig.data.labels=["judging", "perception"];
-        pieConfig.data.datasets[0].data=[mbti_score[4], 1 - mbti_score[4]];
+        // var pieConfig4 = Object.create(pieConfig);
+        pieConfig4.data.labels=["judging", "perception"];
+        pieConfig4.data.datasets[0].data=[mbti_score[4], 1 - mbti_score[4]];
         var pieCtx4 = document.getElementById("chartjs-pie-chart4").getContext("2d");
-        window.myPie = new Chart(pieCtx4, pieConfig);
+        window.myPie = new Chart(pieCtx4, pieConfig4);
     } else {
         document.getElementById("mbdi-charts").style.display="none";
     }
