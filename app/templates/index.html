@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.5">
+    <title>Signin Template · Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="/static/css/signin.css" rel="stylesheet">
+</head>
+
+<!--<script type=text/javascript>-->
+    <!--var a = {{jsonrtn | tojson | safe}};-->
+
+    <!--// alert(a);-->
+<!--</script>-->
+
+<!--<script>-->
+
+<!--var counts = {{ jsonrtn |tojson}};-->
+<!--alert(counts);-->
+<!--</script>-->
+<body class="text-center">
+<div style="margin: auto;">
+    <div style="max-width: 370px; margin: auto;">
+        <form name="login" method="post">
+            <img class="mb-4" src="/static/brand/happiness.svg" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 font-weight-normal">Analyse a Twitter user's MBTI</h1>
+            <!--<form >-->
+            <label for="inputTwitterAccount" class="sr-only">Twitter account</label>
+            <input name="user" type="text" id="inputTwitterAccount" class="form-control" placeholder="Twitter account"
+                   value="realDonaldTrump"
+                   autofocus>
+            <label for="numberOfPosts" class="sr-only">Password</label>
+            <input name="numpost" type="text" id="numberOfPosts" class="form-control" placeholder="Number of posts"
+                   value="5">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Go!</button>
+            <!--</form>-->
+        </form>
+    </div>
+
+    <div style="height: 20px"></div>
+
+    <!--<div style="max-width: 800px; text-align: left">-->
+    <!--<div class="alert alert-info">-->
+    <!--{{ displayinfo }}-->
+    <!--</div>-->
+    <!--</div>-->
+    <div style="margin: auto; max-width: 800px">
+        {{ posts_to_display|safe}}
+    </div>
+
+    <!--<div id="mbdi-charts" style="margin: auto; max-width: 600px; float: left">-->
+        <!--<div style="height:300px;width:40%; float: left; margin: auto">-->
+            <!--<canvas id="chartjs-pie-chart"></canvas>-->
+        <!--</div>-->
+
+        <!--<div style="height:300px;width:40%; float: left;; margin: auto">-->
+            <!--<canvas id="chartjs-pie-chart2"></canvas>-->
+        <!--</div>-->
+
+        <!--<div style="height:300px;width:40%; float: left; margin: auto ">-->
+            <!--<canvas id="chartjs-pie-chart3"></canvas>-->
+        <!--</div>-->
+
+        <!--<div style="height:300px;width:40%; float: left; margin: auto">-->
+            <!--<canvas id="chartjs-pie-chart4"></canvas>-->
+        <!--</div>-->
+
+
+
+    <!--</div>-->
+
+    <div id="mbdi-charts" style="margin: auto; max-width: 600px;">
+        <div style="height:300px;width:270px; margin: auto; display: inline-block">
+            <canvas id="chartjs-pie-chart"></canvas>
+        </div>
+
+        <div style="height:300px;width:270px; margin: auto; display: inline-block">
+            <canvas id="chartjs-pie-chart2"></canvas>
+        </div>
+
+        <div style="height:300px;width:270px; margin: auto; display: inline-block">
+            <canvas id="chartjs-pie-chart3"></canvas>
+        </div>
+
+        <div style="height:300px;width:270px; margin: auto; display: inline-block">
+            <canvas id="chartjs-pie-chart4"></canvas>
+        </div>
+
+
+
+    </div>
+
+
+    <!--<div style="margin: auto;">-->
+            <!--<p class="mt-5 mb-3 text-muted">&copy; 2019</p>-->
+    <!--</div>-->
+</div>
+
+
+<script src="/static/js/Chart.min.js"></script>
+
+<script>
+
+    window.chartColors = {
+        red: 'rgb(255, 99, 132)',
+        orange: 'rgb(255, 159, 64)',
+        yellow: 'rgb(255, 205, 86)',
+        green: 'rgb(75, 192, 192)',
+        blue: 'rgb(54, 162, 235)',
+        purple: 'rgb(153, 102, 255)',
+        grey: 'rgb(201, 203, 207)'
+    };
+
+    window.randomScalingFactor = function () {
+        return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+    };
+
+
+    var pieConfig = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: [
+                    400, 300
+                ],
+                backgroundColor: [
+                    // window.chartColors.red,
+                    // window.chartColors.orange,
+                    window.chartColors.yellow,
+                    // window.chartColors.green,
+                    window.chartColors.blue,
+                ],
+                label: 'Dataset 1'
+            }],
+            labels: [
+                // "Red",
+                // "Orange",
+                "Yellow",
+                // "Green",
+                "Blue"
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: false,
+                text: 'Pie Chart'
+            }
+        }
+    };
+
+    var a = {{jsonrtn | tojson}};
+    var mbti_score = eval('(' + a + ')');
+    if (mbti_score[0] == true) {
+        document.getElementById("mbdi-charts").style.display="block";
+        pieConfig.data.datasets[0].data=[mbti_score[1], 1 - mbti_score[1]];
+        pieConfig.data.labels=["extraversion", "introversion"];
+        var pieCtx = document.getElementById("chartjs-pie-chart").getContext("2d");
+        window.myPie = new Chart(pieCtx, pieConfig);
+
+        pieConfig.data.labels=["sensing", "intuition"];
+        pieConfig.data.datasets[0].data=[mbti_score[2], 1 - mbti_score[2]];
+        pieConfig.options.title.text='S/N'
+        var pieCtx2 = document.getElementById("chartjs-pie-chart2").getContext("2d");
+        window.myPie = new Chart(pieCtx2, pieConfig);
+
+
+        pieConfig.data.labels=["thinking", "feeling"];
+        pieConfig.data.datasets[0].data=[mbti_score[3], 1 - mbti_score[3]];
+        var pieCtx3 = document.getElementById("chartjs-pie-chart3").getContext("2d");
+        window.myPie = new Chart(pieCtx3, pieConfig);
+
+        pieConfig.data.labels=["judging", "perception"];
+        pieConfig.data.datasets[0].data=[mbti_score[4], 1 - mbti_score[4]];
+        var pieCtx4 = document.getElementById("chartjs-pie-chart4").getContext("2d");
+        window.myPie = new Chart(pieCtx4, pieConfig);
+    } else {
+        document.getElementById("mbdi-charts").style.display="none";
+    }
+
+
+</script>
+
+
+</body>
+</html>
